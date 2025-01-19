@@ -1,0 +1,44 @@
+name: CI/CD with Git Flow
+
+on:
+  push:
+    branches:
+      - '**'  # Trigger on any push to any branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Create Virtual Environment
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate  # On Windows, use .venv\Scripts\activate
+
+      - name: Install dependencies
+        run: |
+          . .venv/bin/activate  # Activate the virtual environment
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
+      - name: Run Docker compose
+        run: |
+          docker-compose up --detach
+          
+      - name: Clean up Docker
+        run: |
+          docker-compose down
